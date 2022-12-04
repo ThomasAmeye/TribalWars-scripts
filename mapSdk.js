@@ -63,9 +63,8 @@ MapSdk = {
             }
 
         }
-
         this.mapOverlay.reload();
-        return "Initialised map sdk";
+        return "Initialised Map SDK";
     },
     circleVillage(x, y, size, styling, sector, canvas) {
         //main map
@@ -75,9 +74,9 @@ MapSdk = {
         if (this.circleInSector(pos[0], pos[1], size * TWMap.map.scale[0], size * TWMap.map.scale[1], canvas.width, canvas.height)) {
             ctx.beginPath();
             // add styling
-            if (styling.strokeStyle) ctx.strokeStyle = styling.strokeStyle;
-            if (styling.lineWidth) ctx.lineWidth = styling.lineWidth;
-            if (styling.fillStyle) ctx.fillStyle = styling.fillStyle;
+            if (styling.main && styling.main.strokeStyle) ctx.strokeStyle = styling.main.strokeStyle;
+            if (styling.main && styling.main.lineWidth) ctx.lineWidth = styling.main.lineWidth;
+            if (styling.main && styling.main.fillStyle) ctx.fillStyle = styling.main.fillStyle;
             ctx.ellipse(pos[0], pos[1], size * TWMap.map.scale[0], size * TWMap.map.scale[1], 0, 0, 2 * Math.PI);
             ctx.stroke();
             ctx.fill();
@@ -90,38 +89,60 @@ MapSdk = {
         y = (y - sector.y) * 5 + 3;
         ctx.beginPath();
         // add styling
-        if (styling.strokeStyle) ctx.strokeStyle = styling.strokeStyle;
-        if (styling.lineWidth) ctx.lineWidth = styling.lineWidth;
-        if (styling.fillStyle) ctx.fillStyle = styling.fillStyle;
+        if (styling.mini && styling.mini.strokeStyle) ctx.strokeStyle = styling.mini.strokeStyle;
+        if (styling.mini && styling.mini.lineWidth) ctx.lineWidth = styling.mini.lineWidth;
+        if (styling.mini && styling.mini.fillStyle) ctx.fillStyle = styling.mini.fillStyle;
         ctx.arc(x, y, size * 5, 0, 2 * Math.PI);
         ctx.stroke();
         ctx.fill();
         ctx.closePath();
     },
-    line(x1, y1, x2, y2) {
-        // TODO: rewrite this to use object.
+    line(x1, y1, x2, y2, styling, sector, canvas) {
         let ctx = canvas.getContext('2d');
-        let origin = this.pixelByCoord(element[1], x1, y1);
-        let target = this.pixelByCoord(element[1], x2, y2);
+        let origin = this.pixelByCoord(sector, x1, y1);
+        let target = this.pixelByCoord(sector, x2, y2);
         console.log(origin, target);
-        // only draw in sectors where the line is in
+        // TODO: only draw in sectors where the line is in
         ctx.beginPath();
-        if (styling.strokeStyle) ctx.strokeStyle = styling.strokeStyle;
-        if (styling.lineWidth) ctx.lineWidth = styling.lineWidth;
-        if (styling.fillStyle) ctx.fillStyle = styling.fillStyle;
+        if (styling.main && styling.main.strokeStyle) ctx.strokeStyle = styling.main.strokeStyle;
+        if (styling.main && styling.main.lineWidth) ctx.lineWidth = styling.main.lineWidth;
+        if (styling.main && styling.main.fillStyle) ctx.fillStyle = styling.fillStyle;
         ctx.moveTo(origin[0], origin[1]);
-        ctx.lineTo(target[0], target[0]);
+        ctx.lineTo(target[0], target[1]);
         ctx.stroke();
         ctx.closePath();
     },
-    iconOnMap(img, x, y, size) {
-        // TODO: rewrite this to use object.
-        ctx = this.canvas.getContext("2d");
+    lineMini(x1, y1, x2, y2, styling, sector, canvas) {
+        let ctx = canvas.getContext('2d');
+        x1 = (x1 - sector.x) * 5 + 3;
+        y1 = (y1 - sector.y) * 5 + 3;
+        x2 = (x2 - sector.x) * 5 + 3;
+        y2 = (y2 - sector.y) * 5 + 3;
+        ctx.beginPath();
+        if (styling.mini && styling.mini.strokeStyle) ctx.strokeStyle = styling.mini.strokeStyle;
+        if (styling.mini && styling.mini.lineWidth) ctx.lineWidth = styling.mini.lineWidth;
+        if (styling.mini && styling.mini.fillStyle) ctx.fillStyle = styling.mini.fillStyle;
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.closePath();
+    },
+    iconOnMap(img, x, y, size, sector, canvas) {
+        let ctx = canvas.getContext('2d');
+        let pos = this.pixelByCoord(sector, x, y);
+        // TODO: only draw in sectors where the icon is in
+        ctx.drawImage(img, pos[0] - (size / 2), pos[1] - (size / 2), size, size);
+    },
+    iconOnMiniMap(img, x, y, size, sector, canvas) {
+        let ctx = canvas.getContext('2d');
+        x = (x - sector.x) * 5 + 3;
+        y = (y - sector.y) * 5 + 3;
         ctx.drawImage(img, x - (size / 2), y - (size / 2), size, size);
     },
-    textOnMap(text, x, y, color, font) {
+    textOnMap(text, x, y, color, font, sector, canvas) {
         // TODO: rewrite this to use object.
-        ctx = this.canvas.getContext("2d");
+        ctx = canvas.getContext("2d");
+        let pos = this.pixelByCoord(sector, x, y);
         ctx.font = font;
         ctx.fillStyle = color;
         ctx.textAlign = "center";
@@ -130,8 +151,8 @@ MapSdk = {
         ctx.lineWidth = 4;
         ctx.lineJoin = "round";
         ctx.miterLimit = 1;
-        ctx.strokeText(text, x, y);
-        ctx.fillText(text, x, y);
+        ctx.strokeText(text, pos[0], pos[1]);
+        ctx.fillText(text, pos[0], pos[1]);
         ctx.restore();
     },
     pixelByCoord(sector, x, y) {
@@ -142,8 +163,10 @@ MapSdk = {
         return [originX, originY];
     },
     clearMap() {
-        // TODO: clear all objects
-
+        this.circles = [];
+        this.lines = [];
+        this.texts = [];
+        this.icons = [];
         // reload the overlay once cleared
         this.mapOverlay.reload();
     },
@@ -168,22 +191,92 @@ MapSdk = {
     },
     redrawSector(sector, canvas) {
         this.circles.forEach(element => {
-            this.circleVillage(element.x, element.y, element.radius, element.styling, sector, canvas);
+            if (element.drawOnMap) this.circleVillage(element.x, element.y, element.radius, element.styling, sector, canvas);
         });
+        this.lines.forEach(element => {
+            if (element.drawOnMap) this.line(element.x1, element.y1, element.x2, element.y2, element.styling, sector, canvas);
+        })
+        this.icons.forEach(element => {
+            if (element.drawOnMap) this.iconOnMap(element.img && element.img.src != '' ? element.img : this.defaultImg, element.x, element.y, element.mapSize || 20, sector, canvas);
+        })
+        this.texts.forEach(element => {
+            if (element.drawOnMap) this.textOnMap(element.text, element.x, element.y, element.color || "white", element.font || "10px Arial", sector, canvas);
+        })
     },
     redrawMiniSector(sector, canvas) {
         this.circles.forEach(element => {
-            this.circleMiniVillage(element.x, element.y, element.radius, element.styling, sector, canvas);
+            if (element.drawOnMini) this.circleMiniVillage(element.x, element.y, element.radius, element.styling, sector, canvas);
         });
+        this.lines.forEach(element => {
+            if (element.drawOnMini) this.lineMini(element.x1, element.y1, element.x2, element.y2, element.styling, sector, canvas);
+        })
+        this.icons.forEach(element => {
+            if (element.drawOnMini) this.iconOnMiniMap(element.img && element.img.src != '' ? element.img : this.defaultImg, element.x, element.y, element.miniSize || 5, sector, canvas);
+        })
     },
-    circles: [{
-        x: 556,
-        y: 347,
-        radius: 5,
-        styling: { "strokeStyle": "red", "lineWidth": 5, "fillStyle": "rgba(255, 255, 255, 0.5)" }
-    }],
-    lines: [],
-    texts: [],
-    icons: [],
+    circles: [
+        //     {
+        //     x: 556,
+        //     y: 347,
+        //     radius: 5,
+        //     styling: {
+        //         main: {
+        //             "strokeStyle": "red",
+        //             "lineWidth": 5,
+        //             "fillStyle": "rgba(255, 255, 255, 0.5)"
+        //         },
+        //         mini: {
+        //             "strokeStyle": "red",
+        //             "lineWidth": 2,
+        //             "fillStyle": "rgba(255, 255, 255, 0.5)"
+        //         }
+        //     },
+        //     drawOnMini: true,
+        //     drawOnMap: true,
+        // }
+    ],
+    lines: [
+        //     {
+        //     x1: 556,
+        //     y1: 347,
+        //     x2: 558,
+        //     y2: 343,
+        //     styling: {
+        //         main: {
+        //             "strokeStyle": "red",
+        //             "lineWidth": 5
+        //         },
+        //         mini: {
+        //             "strokeStyle": "red",
+        //             "lineWidth": 1
+        //         }
+        //     },
+        //     drawOnMini: false,
+        //     drawOnMap: true,
+        // }
+    ],
+    texts: [
+        //     {
+        //     text: "Test text",
+        //     x: (556 + 558) / 2, // middle of the line from the above example
+        //     y: (347 + 343) / 2, // middle of the line from the above example
+        //     font: "10px Arial",
+        //     color: "red",
+        //     drawOnMap: true,
+        // }
+    ],
+    icons: [
+        //     {
+        //     img: new Image(), // REQUIRED TO SET THE SRC OF THE IMAGE WHEN ASSIGNING THIS TO THE OBJECT!
+        //     x: 556,
+        //     y: 347,
+        //     drawOnMini: true,
+        //     drawOnMap: true,
+        //     mapSize: 20,
+        //     miniSize: 5,
+        // }
+    ],
     mapOverlay: TWMap,
+    defaultImg: new Image()
 };
+MapSdk.defaultImg.src = "/graphic/buildings/wall.png";
