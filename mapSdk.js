@@ -118,7 +118,6 @@ MapSdk = {
         let ctx = canvas.getContext('2d');
         let origin = this.pixelByCoord(sector, x1, y1);
         let target = this.pixelByCoord(sector, x2, y2);
-        console.log(origin, target);
         // TODO: only draw in sectors where the line is in
         ctx.beginPath();
         if (styling.main && styling.main.strokeStyle) ctx.strokeStyle = styling.main.strokeStyle;
@@ -239,3 +238,4 @@ MapSdk = {
     defaultImg: new Image()
 };
 MapSdk.defaultImg.src = "/graphic/buildings/wall.png";
+MapSdk.init();
