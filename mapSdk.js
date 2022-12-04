@@ -1,3 +1,20 @@
+/*
+Map SDK by Thomas "Sass" Ameye
+
+I am not affiliated to Innogames
+Under MIT License:
+
+Copyright 2022 Thomas "Sass" Ameye 
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/
+
+
 MapSdk = {
     init() {
         if (this.mapOverlay.mapHandler._spawnSector) {
@@ -214,68 +231,10 @@ MapSdk = {
             if (element.drawOnMini) this.iconOnMiniMap(element.img && element.img.src != '' ? element.img : this.defaultImg, element.x, element.y, element.miniSize || 5, sector, canvas);
         })
     },
-    circles: [
-        //     {
-        //     x: 556,
-        //     y: 347,
-        //     radius: 5,
-        //     styling: {
-        //         main: {
-        //             "strokeStyle": "red",
-        //             "lineWidth": 5,
-        //             "fillStyle": "rgba(255, 255, 255, 0.5)"
-        //         },
-        //         mini: {
-        //             "strokeStyle": "red",
-        //             "lineWidth": 2,
-        //             "fillStyle": "rgba(255, 255, 255, 0.5)"
-        //         }
-        //     },
-        //     drawOnMini: true,
-        //     drawOnMap: true,
-        // }
-    ],
-    lines: [
-        //     {
-        //     x1: 556,
-        //     y1: 347,
-        //     x2: 558,
-        //     y2: 343,
-        //     styling: {
-        //         main: {
-        //             "strokeStyle": "red",
-        //             "lineWidth": 5
-        //         },
-        //         mini: {
-        //             "strokeStyle": "red",
-        //             "lineWidth": 1
-        //         }
-        //     },
-        //     drawOnMini: false,
-        //     drawOnMap: true,
-        // }
-    ],
-    texts: [
-        //     {
-        //     text: "Test text",
-        //     x: (556 + 558) / 2, // middle of the line from the above example
-        //     y: (347 + 343) / 2, // middle of the line from the above example
-        //     font: "10px Arial",
-        //     color: "red",
-        //     drawOnMap: true,
-        // }
-    ],
-    icons: [
-        //     {
-        //     img: new Image(), // REQUIRED TO SET THE SRC OF THE IMAGE WHEN ASSIGNING THIS TO THE OBJECT!
-        //     x: 556,
-        //     y: 347,
-        //     drawOnMini: true,
-        //     drawOnMap: true,
-        //     mapSize: 20,
-        //     miniSize: 5,
-        // }
-    ],
+    circles: [],
+    lines: [],
+    texts: [],
+    icons: [],
     mapOverlay: TWMap,
     defaultImg: new Image()
 };
