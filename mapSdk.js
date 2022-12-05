@@ -83,7 +83,7 @@ MapSdk = {
         this.mapOverlay.reload();
         return "Initialised Map SDK";
     },
-    circleVillage(x, y, size, styling, sector, canvas) {
+    circleVillage(x, y, size, styling, sector, canvas, markCircleOrigin) {
         //main map
         let ctx = canvas.getContext('2d');
         let pos = this.pixelByCoord(sector, x, y);
@@ -98,9 +98,21 @@ MapSdk = {
             ctx.stroke();
             ctx.fill();
             ctx.closePath();
+
+            if (markCircleOrigin) {
+                ctx.beginPath();
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2;
+                ctx.moveTo(pos[0] - 6, pos[1] - 6);
+                ctx.lineTo(pos[0] + 6, pos[1] + 6);
+                ctx.moveTo(pos[0] + 6, pos[1] - 6);
+                ctx.lineTo(pos[0] - 6, pos[1] + 6);
+                ctx.stroke();
+                ctx.closePath();
+            }
         }
     },
-    circleMiniVillage(x, y, size, styling, sector, canvas) {
+    circleMiniVillage(x, y, size, styling, sector, canvas, markCircleOrigin) {
         let ctx = canvas.getContext('2d');
         x = (x - sector.x) * 5 + 3;
         y = (y - sector.y) * 5 + 3;
@@ -112,6 +124,16 @@ MapSdk = {
         ctx.arc(x, y, size * 5, 0, 2 * Math.PI);
         ctx.stroke();
         ctx.fill();
+        ctx.closePath();
+
+        ctx.beginPath();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1;
+        ctx.moveTo(x - 2, y - 2);
+        ctx.lineTo(x + 2, y + 2);
+        ctx.moveTo(x + 2, y - 2);
+        ctx.lineTo(x - 2, y + 2);
+        ctx.stroke();
         ctx.closePath();
     },
     line(x1, y1, x2, y2, styling, sector, canvas) {
@@ -207,7 +229,7 @@ MapSdk = {
     },
     redrawSector(sector, canvas) {
         this.circles.forEach(element => {
-            if (element.drawOnMap) this.circleVillage(element.x, element.y, element.radius, element.styling, sector, canvas);
+            if (element.drawOnMap) this.circleVillage(element.x, element.y, element.radius, element.styling, sector, canvas, element.markCircleOrigin || false);
         });
         this.lines.forEach(element => {
             if (element.drawOnMap) this.line(element.x1, element.y1, element.x2, element.y2, element.styling, sector, canvas);
@@ -221,7 +243,7 @@ MapSdk = {
     },
     redrawMiniSector(sector, canvas) {
         this.circles.forEach(element => {
-            if (element.drawOnMini) this.circleMiniVillage(element.x, element.y, element.radius, element.styling, sector, canvas);
+            if (element.drawOnMini) this.circleMiniVillage(element.x, element.y, element.radius, element.styling, sector, canvas, element.markCircleOrigin || false);
         });
         this.lines.forEach(element => {
             if (element.drawOnMini) this.lineMini(element.x1, element.y1, element.x2, element.y2, element.styling, sector, canvas);
