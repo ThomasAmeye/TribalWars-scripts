@@ -14,7 +14,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 */
 
-
 MapSdk = {
     init() {
         if (this.mapOverlay.mapHandler._spawnSector) {
@@ -144,11 +143,49 @@ MapSdk = {
         ctx.beginPath();
         if (styling.main && styling.main.strokeStyle) ctx.strokeStyle = styling.main.strokeStyle;
         if (styling.main && styling.main.lineWidth) ctx.lineWidth = styling.main.lineWidth;
-        if (styling.main && styling.main.fillStyle) ctx.fillStyle = styling.fillStyle;
+        if (styling.main && styling.main.fillStyle) ctx.fillStyle = styling.main.fillStyle;
         ctx.moveTo(origin[0], origin[1]);
         ctx.lineTo(target[0], target[1]);
         ctx.stroke();
         ctx.closePath();
+    },
+    polygon(coords, styling, sector, canvas) {
+        let ctx = canvas.getContext('2d');
+        ctx.save();
+        let origin = this.pixelByCoord(sector, coords[0].x, coords[0].y);
+        if (styling.main && styling.main.strokeStyle) ctx.strokeStyle = styling.main.strokeStyle;
+        if (styling.main && styling.main.lineWidth) ctx.lineWidth = styling.main.lineWidth;
+        if (styling.main && styling.main.fillStyle) ctx.fillStyle = styling.main.fillStyle;
+        ctx.beginPath();
+        ctx.moveTo(origin[0], origin[1]);
+        for (let i = 0; i < coords.length; i++) {
+            let target = this.pixelByCoord(sector, coords[i].x, coords[i].y);
+            ctx.lineTo(target[0], target[1]);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
+        ctx.restore();
+    },
+    polygonOnMini(coords, styling, sector, canvas) {
+        let ctx = canvas.getContext('2d');
+        ctx.save();
+        x = (coords[0].x - sector.x) * 5 + 3;
+        y = (coords[0].y - sector.y) * 5 + 3;
+        if (styling.mini && styling.mini.strokeStyle) ctx.strokeStyle = styling.mini.strokeStyle;
+        if (styling.mini && styling.mini.lineWidth) ctx.lineWidth = styling.mini.lineWidth;
+        if (styling.mini && styling.mini.fillStyle) ctx.fillStyle = styling.mini.fillStyle;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        for (let i = 0; i < coords.length; i++) {
+            x = (coords[i].x - sector.x) * 5 + 3;
+            y = (coords[i].y - sector.y) * 5 + 3;
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
+        ctx.restore();
     },
     lineMini(x1, y1, x2, y2, styling, sector, canvas) {
         let ctx = canvas.getContext('2d');
@@ -191,6 +228,23 @@ MapSdk = {
         ctx.miterLimit = 1;
         ctx.strokeText(text, pos[0], pos[1]);
         ctx.fillText(text, pos[0], pos[1]);
+        ctx.restore();
+    },
+    textOnMiniMap(text, x, y, color, font, sector, canvas) {
+        // TODO: rewrite this to use object.
+        ctx = canvas.getContext("2d");
+        ctx.font = font;
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.save();
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 1;
+        ctx.lineJoin = "round";
+        ctx.miterLimit = 1;
+        x = (x - sector.x) * 5 + 3;
+        y = (y - sector.y) * 5 + 3;
+        ctx.strokeText(text, x, y);
+        ctx.fillText(text, x, y);
         ctx.restore();
     },
     pixelByCoord(sector, x, y) {
@@ -240,6 +294,9 @@ MapSdk = {
         this.texts.forEach(element => {
             if (element.drawOnMap) this.textOnMap(element.text, element.x, element.y, element.color || "white", element.font || "10px Arial", sector, canvas);
         })
+        this.polygons.forEach(element => {
+            if (element.drawOnMap) this.polygon(element.coords, element.styling, sector, canvas);
+        })
     },
     redrawMiniSector(sector, canvas) {
         this.circles.forEach(element => {
@@ -251,9 +308,16 @@ MapSdk = {
         this.icons.forEach(element => {
             if (element.drawOnMini) this.iconOnMiniMap(element.img && element.img.src != '' ? element.img : this.defaultImg, element.x, element.y, element.miniSize || 5, sector, canvas);
         })
+        this.texts.forEach(element => {
+            if (element.drawOnMini) this.textOnMiniMap(element.text, element.x, element.y, element.color || "white", element.miniFont || "10px Arial", sector, canvas);
+        })
+        this.polygons.forEach(element => {
+            if (element.drawOnMini) this.polygonOnMini(element.coords, element.styling, sector, canvas);
+        })
     },
     circles: [],
     lines: [],
+    polygons: [],
     texts: [],
     icons: [],
     mapOverlay: TWMap,
